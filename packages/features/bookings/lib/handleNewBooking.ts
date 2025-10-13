@@ -36,9 +36,6 @@ import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhoo
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
-import { getCheckBookingAndDurationLimitsService } from "@calcom/features/di/containers/BookingLimits";
-import { getCacheService } from "@calcom/features/di/containers/Cache";
-import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
@@ -1171,11 +1168,6 @@ async function handler(
   for (const user of guestUsers) {
     const baseEmail = extractBaseEmail(user.email).toLowerCase();
     emailToRequiresVerification.set(baseEmail, user.requiresBookerEmailVerification ?? false);
-
-    for (const secondary of user.secondaryEmails) {
-      const baseSecondary = extractBaseEmail(secondary.email).toLowerCase();
-      emailToRequiresVerification.set(baseSecondary, user.requiresBookerEmailVerification ?? false);
-    }
   }
 
   const guestsRemoved: string[] = [];
