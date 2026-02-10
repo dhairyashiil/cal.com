@@ -192,7 +192,7 @@ You can use any of these credentials to sign in at [http://localhost:3000](http:
 
 1. Add `export NODE_OPTIONS=“--max-old-space-size=16384”` to your shell script to increase the memory limit for the node process. Alternatively, you can run this in your terminal before running the app. Replace 16384 with the amount of RAM you want to allocate to the node process.
 
-2. Add `NEXT_PUBLIC_LOGGER_LEVEL={level}` to your .env file to control the logging verbosity for all tRPC queries and mutations.\
+2. Add `NEXT_PUBLIC_LOGGER_LEVEL={level}` to your `.env` file to control the logging verbosity for all tRPC queries and mutations.\
    Where {level} can be one of the following:
 
    `0` for silly \
@@ -203,7 +203,7 @@ You can use any of these credentials to sign in at [http://localhost:3000](http:
    `5` for error \
    `6` for fatal
 
-   When you set `NEXT_PUBLIC_LOGGER_LEVEL={level}` in your .env file, it enables logging at that level and higher. Here's how it works:
+   When you set `NEXT_PUBLIC_LOGGER_LEVEL={level}` in your `.env` file, it enables logging at that level and higher. Here's how it works:
 
    The logger will include all logs that are at the specified level or higher. For example: \
 
@@ -498,7 +498,7 @@ If you are evaluating Cal.com or running with minimal to no modifications, this 
 
    Do **not** commit real keys to `.env.example` — only placeholders.
 
-   Update the appropriate values in your .env file, then proceed.
+   Update the appropriate values in your `.env` file, then proceed.
 
 4. (optional) Pre-Pull the images by running the following command:
 
@@ -579,13 +579,13 @@ If you are evaluating Cal.com or running with minimal to no modifications, this 
 
 4. Rename `.env.example` to `.env` and then update `.env`
 
-   For configuration options see [Build-time variables](#build-time-variables) below. Update the appropriate values in your .env file, then proceed.
+   For configuration options see [Build-time variables](#build-time-variables) below. Update the appropriate values in your `.env` file, then proceed.
 
 5. Build the Cal.com docker image:
 
    Note: Due to application configuration requirements, an available database is currently required during the build process.
 
-   a) If hosting elsewhere, configure the `DATABASE_URL` in the .env file, and skip the next step
+   a) If hosting elsewhere, configure the `DATABASE_URL` in the `.env` file, and skip the next step
 
    b) If a local or temporary database is required, start a local database via docker compose.
 
@@ -640,7 +640,7 @@ These variables must also be provided at runtime
 
 ##### Build-time variables
 
-If building the image yourself, these variables must be provided at the time of the docker build, and can be provided by updating the .env file. Currently, if you require changes to these variables, you must follow the instructions to build and publish your own image.
+If building the image yourself, these variables must be provided at the time of the docker build, and can be provided by updating the `.env` file. Currently, if you require changes to these variables, you must follow the instructions to build and publish your own image.
 
 Updating these variables is not required for evaluation, but is required for running in production. Instructions for generating variables can be found in the [Cal.com instructions](https://github.com/calcom/cal.com)
 
@@ -671,7 +671,7 @@ Certain versions may have trouble creating a user if the field `metadata` is emp
 
 ##### CLIENT_FETCH_ERROR
 
-If you experience this error, it may be the way the default Auth callback in the server is using the WEBAPP_URL as a base url. The container does not necessarily have access to the same DNS as your local machine, and therefor needs to be configured to resolve to itself. You may be able to correct this by configuring `NEXTAUTH_URL=http://localhost:3000/api/auth`, to help the backend loop back to itself.
+If you experience this error, it may be the way the default Auth callback in the server is using the WEBAPP_URL as a base url. The container does not necessarily have access to the same DNS as your local machine, and therefore needs to be configured to resolve to itself. You may be able to correct this by configuring `NEXTAUTH_URL=http://localhost:3000/api/auth`, to help the backend loop back to itself.
 
 ```
 docker-calcom-1  | @calcom/web:start: [next-auth][error][CLIENT_FETCH_ERROR]
@@ -858,7 +858,7 @@ following
 
 1. Open [Zoom Marketplace](https://marketplace.zoom.us/) and sign in with your Zoom account.
 2. On the upper right, click "Develop" => "Build App".
-3. Select "General App" , click "Create".
+3. Select "General App", click "Create".
 4. Name your App.
 5. Choose "User-managed app" for "Select how the app is managed".
 6. De-select the option to publish the app on the Zoom App Marketplace, if asked.
