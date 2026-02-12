@@ -84,6 +84,23 @@ model Host {
   @@index([scheduleId])
 }
 
+model PendingEventTypeHost {
+  id          Int       @id @default(autoincrement())
+  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId Int
+  email       String
+  isFixed     Boolean   @default(false)
+  priority    Int       @default(2)
+  weight      Int       @default(100)
+  groupId     String?
+  createdBy   Int
+  createdAt   DateTime  @default(now())
+
+  @@unique([eventTypeId, email])
+  @@index([email])
+  @@index([eventTypeId])
+}
+
 model HostGroup {
   id          String     @id @default(uuid())
   name        String
@@ -147,21 +164,22 @@ model VideoCallGuest {
 }
 
 model EventType {
-  id                Int     @id @default(autoincrement())
+  id                Int                    @id @default(autoincrement())
   /// @zod.string.min(1)
   title             String
   /// @zod.import(["import { eventTypeSlug } from '../../zod-utils'"]).custom.use(eventTypeSlug)
   slug              String
   description       String?
   interfaceLanguage String?
-  position          Int     @default(0)
+  position          Int                    @default(0)
   /// @zod.import(["import { eventTypeLocations } from '../../zod-utils'"]).custom.use(eventTypeLocations)
   locations         Json?
   /// @zod.number.min(1)
   length            Int
-  offsetStart       Int     @default(0)
-  hidden            Boolean @default(false)
+  offsetStart       Int                    @default(0)
+  hidden            Boolean                @default(false)
   hosts             Host[]
+  pendingHosts      PendingEventTypeHost[]
 
   users  User[] @relation("user_eventtype")
   owner  User?  @relation("owner", fields: [userId], references: [id], onDelete: Cascade)

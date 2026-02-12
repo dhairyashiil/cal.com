@@ -1,10 +1,14 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useState } from "react";
-import type { Options, Props } from "react-select";
-
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import type {
+  PriorityDialogCustomClassNames,
+  WeightDialogCustomClassNames,
+} from "@calcom/features/eventtypes/components/dialogs/HostEditDialogs";
+import {
+  PriorityDialog,
+  WeightDialog,
+} from "@calcom/features/eventtypes/components/dialogs/HostEditDialogs";
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
 import { getHostsFromOtherGroups } from "@calcom/lib/bookings/hostGroupUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -14,12 +18,10 @@ import { Button } from "@calcom/ui/components/button";
 import { Select } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
-import type {
-  PriorityDialogCustomClassNames,
-  WeightDialogCustomClassNames,
-} from "@calcom/features/eventtypes/components/dialogs/HostEditDialogs";
-import { PriorityDialog, WeightDialog } from "@calcom/features/eventtypes/components/dialogs/HostEditDialogs";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useState } from "react";
+import type { GroupBase, MenuListProps, Options, Props } from "react-select";
+import { components as reactSelectComponents } from "react-select";
 
 export type CheckedSelectOption = {
   avatar: string;
@@ -31,6 +33,16 @@ export type CheckedSelectOption = {
   disabled?: boolean;
   defaultScheduleId?: number | null;
   groupId: string | null;
+};
+
+export type PendingHost = {
+  id: number;
+  email: string;
+  isFixed: boolean;
+  priority: number;
+  weight: number;
+  groupId: string | null;
+  createdAt: Date | string;
 };
 
 export type CheckedTeamSelectCustomClassNames = {
@@ -49,12 +61,16 @@ export type CheckedTeamSelectCustomClassNames = {
   priorityDialog?: PriorityDialogCustomClassNames;
   weightDialog?: WeightDialogCustomClassNames;
 };
+
 export const CheckedTeamSelect = ({
   options = [],
   value = [],
   isRRWeightsEnabled,
   customClassNames,
   groupId,
+  pendingHosts = [],
+  onInviteTeamMember,
+  onRemovePendingHost,
   ...props
 }: Omit<Props<CheckedSelectOption, true>, "value" | "onChange"> & {
   options?: Options<CheckedSelectOption>;
@@ -63,6 +79,9 @@ export const CheckedTeamSelect = ({
   isRRWeightsEnabled?: boolean;
   customClassNames?: CheckedTeamSelectCustomClassNames;
   groupId: string | null;
+  pendingHosts?: PendingHost[];
+  onInviteTeamMember?: () => void;
+  onRemovePendingHost?: (email: string) => void;
 }) => {
   const isPlatform = useIsPlatform();
   const [priorityDialogOpen, setPriorityDialogOpen] = useState(false);
@@ -73,13 +92,51 @@ export const CheckedTeamSelect = ({
   const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
-  const valueFromGroup = groupId ? value.filter((host) => host.groupId === groupId) : value;
+  const valueFromGroup = groupId
+    ? value.filter((host) => host.groupId === groupId)
+    : value;
+  const pendingHostsFromGroup = groupId
+    ? pendingHosts.filter((ph) => ph.groupId === groupId)
+    : pendingHosts;
+
+  const totalItems = valueFromGroup.length + pendingHostsFromGroup.length;
 
   const handleSelectChange = (newValue: readonly CheckedSelectOption[]) => {
     const otherGroupsHosts = getHostsFromOtherGroups(value, groupId);
 
-    const newValueAllGroups = [...otherGroupsHosts, ...newValue.map((host) => ({ ...host, groupId }))];
+    const newValueAllGroups = [
+      ...otherGroupsHosts,
+      ...newValue.map((host) => ({ ...host, groupId })),
+    ];
     props.onChange(newValueAllGroups);
+  };
+
+  const CustomMenuList = (
+    menuListProps: MenuListProps<
+      CheckedSelectOption,
+      true,
+      GroupBase<CheckedSelectOption>
+    >
+  ) => {
+    return (
+      <reactSelectComponents.MenuList {...menuListProps}>
+        {menuListProps.children}
+        {onInviteTeamMember && (
+          <button
+            type="button"
+            className="text-emphasis hover:bg-subtle flex w-full cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-sm"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onInviteTeamMember();
+            }}
+          >
+            <Icon name="user-plus" className="h-4 w-4" />
+            {t("invite_new_member")}
+          </button>
+        )}
+      </reactSelectComponents.MenuList>
+    );
   };
 
   return (
@@ -98,25 +155,34 @@ export const CheckedTeamSelect = ({
           ...customClassNames?.hostsSelect?.innerClassNames,
           control: "rounded-md",
         }}
+        components={{
+          ...(onInviteTeamMember ? { MenuList: CustomMenuList } : {}),
+        }}
       />
       {/* This class name conditional looks a bit odd but it allows a seamless transition when using autoanimate
        - Slides down from the top instead of just teleporting in from nowhere*/}
       <ul
         className={classNames(
           "mb-4 mt-3 rounded-md",
-          valueFromGroup.length >= 1 && "border-subtle border",
+          totalItems >= 1 && "border-subtle border",
           customClassNames?.selectedHostList?.container
         )}
-        ref={animationRef}>
+        ref={animationRef}
+      >
         {valueFromGroup.map((option, index) => (
           <>
             <li
               key={option.value}
               className={classNames(
-                `flex px-3 py-2 ${index === valueFromGroup.length - 1 ? "" : "border-subtle border-b"}`,
+                `flex px-3 py-2 ${
+                  index === totalItems - 1 ? "" : "border-subtle border-b"
+                }`,
                 customClassNames?.selectedHostList?.listItem?.container
-              )}>
-              {!isPlatform && <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />}
+              )}
+            >
+              {!isPlatform && (
+                <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />
+              )}
               {isPlatform && (
                 <Icon
                   name="user"
@@ -130,7 +196,8 @@ export const CheckedTeamSelect = ({
                 className={classNames(
                   "text-emphasis my-auto ms-3 text-sm",
                   customClassNames?.selectedHostList?.listItem?.name
-                )}>
+                )}
+              >
                 {option.label}
               </p>
               <div className="ml-auto flex items-center">
@@ -146,8 +213,10 @@ export const CheckedTeamSelect = ({
                         className={classNames(
                           "mr-6 h-2 p-0 text-sm hover:bg-transparent",
                           getPriorityTextAndColor(option.priority).color,
-                          customClassNames?.selectedHostList?.listItem?.changePriorityButton
-                        )}>
+                          customClassNames?.selectedHostList?.listItem
+                            ?.changePriorityButton
+                        )}
+                      >
                         {t(getPriorityTextAndColor(option.priority).text)}
                       </Button>
                     </Tooltip>
@@ -156,12 +225,14 @@ export const CheckedTeamSelect = ({
                         color="minimal"
                         className={classNames(
                           "mr-6 h-2 w-4 p-0 text-sm hover:bg-transparent",
-                          customClassNames?.selectedHostList?.listItem?.changeWeightButton
+                          customClassNames?.selectedHostList?.listItem
+                            ?.changeWeightButton
                         )}
                         onClick={() => {
                           setWeightDialogOpen(true);
                           setCurrentOption(option);
-                        }}>
+                        }}
+                      >
                         {option.weight ?? 100}%
                       </Button>
                     ) : (
@@ -174,7 +245,11 @@ export const CheckedTeamSelect = ({
 
                 <Icon
                   name="x"
-                  onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
+                  onClick={() =>
+                    props.onChange(
+                      value.filter((item) => item.value !== option.value)
+                    )
+                  }
                   className={classNames(
                     "my-auto ml-2 h-4 w-4",
                     customClassNames?.selectedHostList?.listItem?.removeButton
@@ -183,6 +258,36 @@ export const CheckedTeamSelect = ({
               </div>
             </li>
           </>
+        ))}
+        {pendingHostsFromGroup.map((pendingHost, index) => (
+          <li
+            key={`pending-${pendingHost.email}`}
+            className={classNames(
+              `flex px-3 py-2 ${
+                valueFromGroup.length + index === totalItems - 1
+                  ? ""
+                  : "border-subtle border-b"
+              }`,
+              customClassNames?.selectedHostList?.listItem?.container
+            )}
+          >
+            <Icon name="mail" className="text-subtle mt-0.5 h-4 w-4" />
+            <p className="text-subtle my-auto ms-3 text-sm italic">
+              {pendingHost.email}
+              <span className="text-muted ml-2 text-xs">
+                ({t("pending_invite")})
+              </span>
+            </p>
+            <div className="ml-auto flex items-center">
+              {onRemovePendingHost && (
+                <Icon
+                  name="x"
+                  onClick={() => onRemovePendingHost(pendingHost.email)}
+                  className="my-auto ml-2 h-4 w-4 cursor-pointer"
+                />
+              )}
+            </div>
+          </li>
         ))}
       </ul>
       {currentOption && !currentOption.isFixed ? (

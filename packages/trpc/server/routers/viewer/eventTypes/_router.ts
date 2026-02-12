@@ -1,8 +1,6 @@
-import { z } from "zod";
-
 import { logP } from "@calcom/lib/perf";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import { z } from "zod";
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZDeleteInputSchema } from "./delete.schema";
@@ -12,6 +10,11 @@ import { ZGetHashedLinkInputSchema } from "./getHashedLink.schema";
 import { ZGetHashedLinksInputSchema } from "./getHashedLinks.schema";
 import { ZGetHostsWithLocationOptionsInputSchema } from "./getHostsWithLocationOptions.schema";
 import { ZMassApplyHostLocationInputSchema } from "./massApplyHostLocation.schema";
+import {
+  ZAddPendingHostInputSchema,
+  ZListPendingHostsInputSchema,
+  ZRemovePendingHostInputSchema,
+} from "./pendingHosts.schema";
 import { get } from "./procedures/get";
 import { createEventPbacProcedure } from "./util";
 
@@ -174,5 +177,32 @@ export const eventTypesRouter = router({
         ctx,
         input,
       });
+    }),
+
+  addPendingHost: createEventPbacProcedure("eventType.update", [MembershipRole.ADMIN, MembershipRole.OWNER])
+    .input(ZAddPendingHostInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { addPendingHostHandler } = await import("./pendingHosts.handler");
+
+      return addPendingHostHandler({ ctx, input });
+    }),
+
+  removePendingHost: createEventPbacProcedure("eventType.update", [
+    MembershipRole.ADMIN,
+    MembershipRole.OWNER,
+  ])
+    .input(ZRemovePendingHostInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { removePendingHostHandler } = await import("./pendingHosts.handler");
+
+      return removePendingHostHandler({ ctx, input });
+    }),
+
+  listPendingHosts: createEventPbacProcedure("eventType.update", [MembershipRole.ADMIN, MembershipRole.OWNER])
+    .input(ZListPendingHostsInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { listPendingHostsHandler } = await import("./pendingHosts.handler");
+
+      return listPendingHostsHandler({ ctx, input });
     }),
 });

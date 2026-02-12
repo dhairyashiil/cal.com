@@ -5,6 +5,7 @@ import { deleteWorkfowRemindersOfRemovedMember } from "@calcom/features/ee/teams
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+import { PendingEventTypeHostService } from "@calcom/features/eventtypes/services/PendingEventTypeHostService";
 import { OnboardingPathService } from "@calcom/features/onboarding/lib/onboarding-path.service";
 import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
@@ -287,6 +288,9 @@ export class TeamService {
     }
 
     await updateNewTeamMemberEventTypes(userId, teamId);
+
+    const pendingHostService = new PendingEventTypeHostService();
+    await pendingHostService.promotePendingHosts({ email: userEmail, userId, teamId });
   }
   static async leaveTeamMembership({ userId, teamId }: { userId: number; teamId: number }) {
     try {

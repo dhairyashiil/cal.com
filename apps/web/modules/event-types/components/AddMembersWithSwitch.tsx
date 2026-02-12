@@ -1,12 +1,18 @@
 import { AddMembersWithSwitchPlatformWrapper } from "@calcom/atoms/add-members-switch/AddMembersWithSwitchPlatformWrapper";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import AssignAllTeamMembers from "@calcom/features/eventtypes/components/AssignAllTeamMembers";
+import type {
+  CheckedSelectOption,
+  CheckedTeamSelectCustomClassNames,
+  PendingHost,
+} from "@calcom/features/eventtypes/components/CheckedTeamSelect";
+import CheckedTeamSelect from "@calcom/features/eventtypes/components/CheckedTeamSelect";
 import type {
   FormValues,
   Host,
   SettingsToggleClassNames,
   TeamMember,
 } from "@calcom/features/eventtypes/lib/types";
-import { Segment } from "./Segment";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { Label, SettingsToggle } from "@calcom/ui/components/form";
@@ -14,13 +20,7 @@ import { type ComponentProps, type Dispatch, type SetStateAction, useMemo } from
 import { Controller, useFormContext } from "react-hook-form";
 import type { Options } from "react-select";
 import { AddMembersWithSwitchWebWrapper } from "./AddMembersWithSwitchWebWrapper";
-
-import AssignAllTeamMembers from "@calcom/features/eventtypes/components/AssignAllTeamMembers";
-import type {
-  CheckedSelectOption,
-  CheckedTeamSelectCustomClassNames,
-} from "@calcom/features/eventtypes/components/CheckedTeamSelect";
-import CheckedTeamSelect from "@calcom/features/eventtypes/components/CheckedTeamSelect";
+import { Segment } from "./Segment";
 
 interface IUserToValue {
   id: number | null;
@@ -63,6 +63,9 @@ const CheckedHostField = ({
   isRRWeightsEnabled,
   groupId,
   customClassNames,
+  pendingHosts,
+  onInviteTeamMember,
+  onRemovePendingHost,
   ...rest
 }: {
   labelText?: string;
@@ -74,6 +77,9 @@ const CheckedHostField = ({
   helperText?: React.ReactNode | string;
   isRRWeightsEnabled?: boolean;
   groupId: string | null;
+  pendingHosts?: PendingHost[];
+  onInviteTeamMember?: () => void;
+  onRemovePendingHost?: (email: string) => void;
 } & Omit<Partial<ComponentProps<typeof CheckedTeamSelect>>, "onChange" | "value">) => {
   return (
     <div className="flex flex-col rounded-md">
@@ -116,6 +122,9 @@ const CheckedHostField = ({
           isRRWeightsEnabled={isRRWeightsEnabled}
           customClassNames={customClassNames}
           groupId={groupId}
+          pendingHosts={pendingHosts}
+          onInviteTeamMember={onInviteTeamMember}
+          onRemovePendingHost={onRemovePendingHost}
           {...rest}
         />
       </div>
@@ -194,6 +203,9 @@ export type AddMembersWithSwitchProps = {
   groupId: string | null;
   "data-testid"?: string;
   customClassNames?: AddMembersWithSwitchCustomClassNames;
+  pendingHosts?: PendingHost[];
+  onInviteTeamMember?: () => void;
+  onRemovePendingHost?: (email: string) => void;
 };
 
 enum AssignmentState {
@@ -260,6 +272,9 @@ export function AddMembersWithSwitch({
   isSegmentApplicable,
   groupId,
   customClassNames,
+  pendingHosts,
+  onInviteTeamMember,
+  onRemovePendingHost,
   ...rest
 }: AddMembersWithSwitchProps) {
   const { t } = useLocale();
@@ -345,6 +360,9 @@ export function AddMembersWithSwitch({
               isRRWeightsEnabled={isRRWeightsEnabled}
               groupId={groupId}
               customClassNames={customClassNames?.teamMemberSelect}
+              pendingHosts={pendingHosts}
+              onInviteTeamMember={onInviteTeamMember}
+              onRemovePendingHost={onRemovePendingHost}
             />
           </div>
         </>
